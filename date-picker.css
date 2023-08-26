@@ -1,0 +1,60 @@
+.date-picker {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 250px;
+}
+
+.scroll-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-container .wrapper {
+  overflow-y: auto;
+  height: 250px;
+  scroll-snap-type: y mandatory;
+}
+
+.wrapper .item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  scroll-snap-align: center;
+  color: #000;
+}
+
+.target-center {
+  position: absolute;
+  top: 100px;
+  left: 0;
+  z-index: -1;
+  width: 100%;
+  height: 50px;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    180deg, 
+    hsla(0, 0%, 100%, 1), 
+    hsla(0, 0%, 100%,.8), 
+    hsla(0, 0%, 100%, 0),
+    hsla(0, 0%, 100%,.8), 
+    hsla(0, 0%, 100%, 1));
+  pointer-events: none;
+}
+
+::-webkit-scrollbar { 
+  display: none;
+}

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .date-picker {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      height: 250px;
+    }
+
+    .scroll-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .scroll-container .wrapper {
+      overflow-y: auto;
+      height: 250px;
+      scroll-snap-type: y mandatory;
+    }
+
+    .wrapper .item {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 50px;
+      scroll-snap-align: center;
+      color: #000;
+    }
+
+    .target-center {
+      position: absolute;
+      top: 100px;
+      left: 0;
+      z-index: -1;
+      width: 100%;
+      height: 50px;
+      border-top: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      box-sizing: border-box;
+    }
+
+    .mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(
+        180deg,
+        hsla(0, 0%, 100%, 1),
+        hsla(0, 0%, 100%,.8),
+        hsla(0, 0%, 100%, 0),
+        hsla(0, 0%, 100%,.8),
+        hsla(0, 0%, 100%, 1));
+      pointer-events: none;
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="date-picker">
+    <div class="scroll-container">
+      <div class="target-center"></div>
+      <div class="mask"></div>
+      <div class="wrapper year-wrapper">
+        <div class="scroll-wrapper"></div>
+      </div>
+    </div>
+    <div class="scroll-container">
+      <div class="target-center"></div>
+      <div class="mask"></div>
+      <div class="wrapper month-wrapper">
+        <div class="scroll-wrapper"></div>
+      </div>
+    </div>
+    <div class="scroll-container">
+      <div class="target-center"></div>
+      <div class="mask"></div>
+      <div class="wrapper day-wrapper">
+        <div class="scroll-wrapper"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const oYearWrapper = document.querySelector('.year-wrapper');
+    const oMonthWrapper = document.querySelector('.month-wrapper');
+    const oDayWrapper = document.querySelector('.day-wrapper');
+
+    const yearArr = [
+      2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+      2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
+      2020, 2021, 2022, 2023
+    ];
+    const monthArr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const currentDate = [2021, 2, 15];
+    let dayArr = createDayArr(...currentDate);
+
+    const init = () => {
+      initDOM();
+      bindEvent();
+    }
+
+    function initDOM () {
+      createItems(oYearWrapper, yearArr);
+      createItems(oMonthWrapper, monthArr);
+      createItems(oDayWrapper, dayArr);
+      initCurrentDate(...currentDate);
+    }
+
+    function bindEvent () {
+      oYearWrapper.addEventListener('scrollend', setCurrentDate.bind(oYearWrapper, 'YEAR'), false);
+      oMonthWrapper.addEventListener('scrollend', setCurrentDate.bind(oMonthWrapper, 'MONTH'), false);
+      oDayWrapper.addEventListener('scrollend', setCurrentDate.bind(oDayWrapper, 'DAY'), false);
+    }
+
+    function createItems (wrapper, arr) {
+      const oFrag = document.createDocumentFragment();
+      const oScrollWrapper = wrapper.querySelector('.scroll-wrapper');
+
+      for (let i = 0; i < 2; i ++) {
+        const oItem = createPlaceholder();
+        oFrag.appendChild(oItem);
+      }
+
+      arr.forEach(year => {
+        const oItem = document.createElement('div');
+        oItem.innerText = year;
+        oItem.setAttribute('data-num', year);
+        oItem.classList.add('item');
+
+        oFrag.appendChild(oItem);
+      })
+
+      for (let i = 0; i < 2; i ++) {
+        const oItem = createPlaceholder();
+        oFrag.appendChild(oItem);
+      }
+
+      oScrollWrapper.innerHTML = '';
+      oScrollWrapper.appendChild(oFrag);
+    }
+
+    function createPlaceholder () {
+      const oItem = document.createElement('div');
+      oItem.classList.add('item');
+
+      return oItem;
+    }
+
+    function initCurrentDate (year, month, day) {
+      const yearIndex = yearArr.indexOf(year);
+      const monthIndex = monthArr.indexOf(month);
+      const dayIndex = dayArr.indexOf(day);
+
+      setScrollY(oYearWrapper, yearIndex);
+      setScrollY(oMonthWrapper, monthIndex);
+      setScrollY(oDayWrapper, dayIndex);
+    }
+
+    function setCurrentDate (field) {
+      const wrapper = this;
+      const index = wrapper.scrollTop / 50;
+
+      switch (field) {
+        case 'YEAR':
+          currentDate[0] = yearArr[index];
+          dayArr = createDayArr(...currentDate);
+          createItems(oDayWrapper, dayArr);
+          break;
+        case 'MONTH':
+          currentDate[1] = monthArr[index];
+          dayArr = createDayArr(...currentDate);
+          createItems(oDayWrapper, dayArr);
+          break;
+        case 'DAY':
+          currentDate[2] = dayArr[index];
+          break;
+        default:
+          break;
+      }
+
+      console.log(currentDate);
+    }
+
+    function setScrollY (wrapper, index) {
+      wrapper.scrollTo(0, index * 50);
+    }
+
+    function createDayArr (year, month) {
+      const count = getDayCount(year, month);
+      const arr = [];
+
+      for (let i = 1; i <= count; i ++) {
+        arr.push(i);
+      }
+
+      return arr;
+    }
+
+    function getDayCount (year, month) {
+      return new Date(year, month, 0).getDate();
+    }
+
+    init();
+
+
+
+
+  </script>
+</body>
+</html>
